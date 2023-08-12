@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  console:
+    container_name: redpanda-console
+    image: docker.redpanda.com/redpandadata/console:latest
+    command: -c '/app/console'
+    entrypoint: /bin/sh
+    hostname: redpanda-console
+    volumes:
+    - ./console-config:/tmp
+    environment:
+      CONFIG_FILEPATH: /tmp/redpanda-console-config.yml
+    ports:
+    - 8080:8080
+

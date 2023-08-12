@@ -1,0 +1,45 @@
+{
+  "title": "Broker Commissioning",
+  "description": "Adding and removing brokers",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "background": "background.sh",
+      "foreground": "foreground.sh"
+    },
+    "steps": [
+      {
+        "title": "Adding and removing brokers",
+        "text": "step1.md"
+      }
+    ],
+    "assets": {
+      "host01": [
+        {"file": "compose.console.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-0.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-1.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-2.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-3.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-4.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "rpk-config.yaml", "target": "/etc/redpanda", "chmod": "+w"},
+        {"file": "delete-data.sh", "target": "~/", "chmod": "+x"},
+        {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
+        {"file": "update-seeds.sh", "target": "~/", "chmod": "+x"},
+        {"file": "console-config/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-0/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-1/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-2/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-3/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-4/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-0/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-1/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-2/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-3/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-4/*", "target": "~/"}
+      ]
+    }
+  },
+  "backend": {
+    "imageid": "ubuntu-4GB"
+  }
+}

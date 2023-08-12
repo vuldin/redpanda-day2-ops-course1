@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  redpanda-4.local:
+    container_name: redpanda-4.local
+    image: docker.vectorized.io/vectorized/redpanda:latest
+    command:
+    - redpanda start
+    - --smp 1
+    - --overprovisioned
+    - --memory 1G
+    volumes:
+    - ./redpanda-config/redpanda-4:/etc/redpanda
+    - ./redpanda-data/redpanda-4:/var/lib/redpanda/data
+    ports:
+    - 9492:9492
+    - 9044:9044
+    - 8481:8481
+    - 8482:8482
+
