@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  redpanda-2.local:
+    container_name: redpanda-2.local
+    image: docker.vectorized.io/vectorized/redpanda:v23.2.4
+    command:
+    - redpanda start
+    - --smp 1
+    - --overprovisioned
+    - --memory 1G
+    volumes:
+    - ./redpanda-config/redpanda-2:/etc/redpanda
+    - ./redpanda-data/redpanda-2:/var/lib/redpanda/data
+    ports:
+    - 9292:9292
+    - 9844:9844
+    - 8281:8281
+    - 8282:8282
+

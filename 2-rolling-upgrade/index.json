@@ -1,0 +1,55 @@
+{
+  "title": "Rolling upgrade",
+  "description": "Upgrading a cluster to a new version of Redpanda",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "background": "background.sh",
+      "foreground": "foreground.sh"
+    },
+    "steps": [
+      {
+        "title": "Prepare for upgrade",
+        "text": "step1.md"
+      },
+      {
+        "title": "Upgrade",
+        "text": "step2.md"
+      }
+    ],
+    "assets": {
+      "host01": [
+        {"file": "compose.redpanda-0.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-1.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-2.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-3.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-4.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.prometheus.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.grafana.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "rpk-config.yaml", "target": "/etc/redpanda", "chmod": "+w"},
+        {"file": "delete-data.sh", "target": "~/", "chmod": "+x"},
+        {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
+        {"file": "get-versions.sh", "target": "~/", "chmod": "+x"},
+        {"file": "stop-broker.sh", "target": "~/", "chmod": "+x"},
+        {"file": "update-version.sh", "target": "~/", "chmod": "+x"},
+        {"file": "redpanda-config/redpanda-0/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-1/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-2/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-3/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-4/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-0/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-1/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-2/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-3/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-4/*", "target": "~/"},
+        {"file": "grafana-config/dashboards/*", "target": "~/"},
+        {"file": "grafana-config/provisioning/dashboards/*", "target": "~/"},
+        {"file": "grafana-config/provisioning/datasources/*", "target": "~/"},
+        {"file": "prometheus-config/*", "target": "~/"}
+      ]
+    }
+  },
+  "backend": {
+    "imageid": "ubuntu-4GB"
+  }
+}
