@@ -9,8 +9,12 @@
     },
     "steps": [
       {
-        "title": "Adding and removing brokers",
+        "title": "Adding new brokers",
         "text": "step1.md"
+      },
+      {
+        "title": "Removing old brokers",
+        "text": "step2.md"
       }
     ],
     "assets": {
