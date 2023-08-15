@@ -1,7 +1,18 @@
 ![Juggling Panda](./images/reppanda-juggling.png)
 
-Redpanda is a Kafka-compatible streaming data platform that is less complex and less costly than any other commercial mission-critical event streaming platform. It's fast, it's easy, and it keeps your data safe.
+# Commissioning Redpanda Brokers
 
-Kubernetes is a container orchestration tool that helps you to manage Redpanda cluster deployments. It provides a standardized way of achieving high availability, disaster recovery, and scalability.
+*Here is a [link to our docs](https://docs.redpanda.com/docs/manage/cluster-maintenance/decommission-brokers/) on this topic.*
 
-WIP 
+This scenario focuses on commissioning (adding/removing) brokers.
+
+A popular reason for increasing a cluster's broker count is to expand the cluster's available resources. Conversely, a popular reason for decreasing the broker count is to save money on infrastructure costs over time. But this process should only be taken after considering several factors:
+
+- Availability: do you have enough brokers to span across all racks and/or availability zones?
+- Cost: infrastructure costs will be impacted by a change in broker count
+- Data retention: storage capacity and possible retention values are determined in large part by the local disk capacity across all brokers
+- Durability: you should have more brokers than your lowest partition replication factor
+- partition count: this value is determined primarily by the CPU core count of the overall cluster
+
+Right now a Redpanda cluster with 3 brokers is being deployed, along with Redpanda Console. Next a topic will be create with 3 partitions, each with 3 replicas. Finally a simple client (provided by `rpk`) will be started in the background to constantly produce data while you run through this scenario.
+

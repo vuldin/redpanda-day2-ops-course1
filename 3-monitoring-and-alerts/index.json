@@ -1,0 +1,20 @@
+{
+  "title": "Monitoring and Alerting",
+  "description": "Using Prometheus and Grafana with Redpanda",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "foreground": "foreground.sh",
+      "background": "background.sh"
+    },
+    "steps": [
+      {
+        "title": "Links to running resources",
+        "text": "step1.md"
+      }
+    ]
+  },
+  "backend": {
+    "imageid": "ubuntu-4GB"
+  }
+}

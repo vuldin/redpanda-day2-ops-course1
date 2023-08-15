@@ -1,17 +1,23 @@
 # Day 2 Operations with Redpanda
 
-Join us for an intensive 3-hour masterclass on how to manage and maintain your Redpanda clusters. Our Solutions Architects will drill down into details on how to operate our powerful streaming data engine.
+This is the Github repo for the Redpanda day 2 operations masterclass, hosted on [Killercoda](https://killercoda.com/vuldin).
 
-This will be a hands-on learning environment. You will have access to a Redpanda cluster running in Kubernetes with a client generating data in a topic. You can join breakout sessions for individual help.
+> Note: As this is a broad topic, this event is likely the first in a series... check back for additional content!
+
+There are 3 scenarios focused on the following tasks:
+
+1. commissioning brokers
+2. upgrading your cluster
+3. monitoring and managing alerts with Prometheus and Grafana
 
 You will come away from this session knowing how to:
 
-    Use RPK to verify cluster status and health
-    Deploy Grafana charts to view Redpanda metrics
-    Run a script that generates Grafana and Prometheus alerts
-    Configure alerting
-    Decommission and remove a broker
-    Add a new broker with an updated version of Redpanda
+- Use RPK to verify cluster status and health
+- Deploy Grafana charts to view Redpanda metrics
+- Configure alerting
+- Run a script that generates Grafana and Prometheus alerts
+- Add and remove brokers
+- Update the cluster to a new version of Redpanda
 
 We will answer your questions throughout this interactive session.
 
