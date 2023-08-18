@@ -8,6 +8,8 @@ rpk topic ls | awk '{print $3}' | grep -v REPLICAS | sort | tail -1
 
 Since our cluster has partitions with 3 replicas, we must first add additional brokers to the cluster before removing the older brokers. We will add 2 new brokers at the same time to go to a 5-broker cluster, but you could choose to only add one broker at a time.
 
+![Overview](./images/overview.png)
+
 > Note: It is safe to **add** multiple brokers to a cluster without waiting because new brokers hold no partition data. But since existing brokers do hold data, you should only **remove** a single broker at a time.
 
 Add the two additional brokers to the cluster:
@@ -22,13 +24,42 @@ Verify the cluster is now a healthy 5-broker cluster:
 rpk cluster health
 ```{{exec}}
 
+You'll see new nodes in the cluster:
+```
+CLUSTER HEALTH OVERVIEW
+=======================
+Healthy:                     true
+Unhealthy reasons:           []
+Controller ID:               0
+All nodes:                   [0 1 2 3 4]
+Nodes down:                  []
+Leaderless partitions:       []
+Under-replicated partitions: []
+```
+
 A cluster has seed servers to help it startup and join brokers correctly to the running cluster. You want to ensure that each broker in the cluster has the same seed server list, and that the list contains at least three entries (the more the better). You also want to make sure there is at least one seed server available at all times. More details [here](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/manual/production/production-deployment/#configure-the-seed-servers).
 
-The 2 additional brokers were added to the broker with an updated seed server list that contained themselves plus `redpanda-0`. We will now apply this same update to the Redpanda configuration for `redpanda-0`:
+![Original Cluster](./images/original_cluster.png)
 
+Here is the current seed server list in the cluster:
+```
+docker exec -it redpanda-0.local cat /etc/redpanda/redpanda.yaml | yq '.redpanda.seed_servers'
+```{{exec}}
+
+
+The 2 additional brokers were added to the broker with an updated seed server list that contained themselves plus `redpanda-0`.
+![Update Seed Server List](./images/update_seed.png)
+
+We will now apply this same update to the Redpanda configuration for `redpanda-0`:
 ```
 ./update-seeds.sh
 ```{{exec}}
+
+Make sure the seed server list is updated in `redpanda-0`:
+```
+docker exec -it redpanda-0.local cat /etc/redpanda/redpanda.yaml | yq '.redpanda.seed_servers'
+```{{exec}}
+
 
 `redpanda-0` must be restarted for this change to take affect:
 

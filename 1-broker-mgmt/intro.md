@@ -1,4 +1,4 @@
-![Juggling Panda](./images/reppanda-juggling.png)
+![Barbell Panda](./images/reppanda-barbell.png)
 
 # Commissioning Redpanda Brokers
 
