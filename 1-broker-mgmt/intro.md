@@ -14,5 +14,7 @@ A popular reason for increasing a cluster's broker count is to expand the cluste
 - Durability: you should have more brokers than your lowest partition replication factor
 - partition count: this value is determined primarily by the CPU core count of the overall cluster
 
-Right now a Redpanda cluster with 3 brokers is being deployed, along with Redpanda Console. Next a topic will be create with 3 partitions, each with 3 replicas. Finally a simple client (provided by `rpk`) will be started in the background to constantly produce data while you run through this scenario.
+Right now a Redpanda cluster with 3 brokers is being deployed, along with Redpanda Console. Then a topic will be create with 3 partitions, each with 3 replicas. Finally a simple client (provided by `rpk`) will be started in the background to constantly produce data while you run through this scenario.
+
+Click `Next` once you see that this process has completed (and you see a ready prompt).
 
