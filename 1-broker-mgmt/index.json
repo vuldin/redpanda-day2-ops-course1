@@ -15,6 +15,10 @@
       {
         "title": "Removing old brokers",
         "text": "step2.md"
+      },
+      {
+        "title": "Challenge",
+        "text": "step3.md"
       }
     ],
     "assets": {
@@ -29,6 +33,7 @@
         {"file": "delete-data.sh", "target": "~/", "chmod": "+x"},
         {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
         {"file": "update-seeds.sh", "target": "~/", "chmod": "+x"},
+        {"file": "check-challenge.sh", "target": "~/", "chmod": "+x"},
         {"file": "console-config/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-0/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-1/*", "target": "~/"},
