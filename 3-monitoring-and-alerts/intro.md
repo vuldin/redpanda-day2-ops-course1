@@ -18,4 +18,4 @@ Right now the following resources are being deployed:
 - Owl Shop, an e-commerce simulation
 - an app from our [observability](https://github.com/redpanda-data/observability) repo responsible for managing alert configuration
 
-Click next once you see that this process has completed (and you see a ready prompt).
+Click `Start` once you see that this process has completed (and you see a ready prompt).

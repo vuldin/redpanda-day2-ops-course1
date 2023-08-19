@@ -1,12 +1,23 @@
-You will be replacing the cluster's brokers in a way that keeps the cluster available for clients. A likely reason for this could be that you need to replace/upgrade the underlying physical/virtual hardware.
+You will be replacing the cluster's brokers while keeping the cluster available for clients. A likely reason for this could be that you need to replace/upgrade the underlying physical/virtual hardware.
 
-You can find your cluster's highest partition replica count using `rpk`:
+But do you know if you should first remove and then add a broker, or if you should add and then remove a broker? We'll call these two approaches "remove first" and "add first".
+
+A cluster cannot reach majority consensus with two brokers (or any even number), so we should not drop below three brokers. Remember that we currently have three brokers!
+
+The same rule applies to partition replicas. You can find your cluster's highest partition replica count using `rpk`:
 
 ```
 rpk topic ls | awk '{print $3}' | grep -v REPLICAS | sort | tail -1
 ```{{exec}}
 
-Since our cluster has partitions with 3 replicas, we must first add additional brokers to the cluster before removing the older brokers. We will add 2 new brokers at the same time to go to a 5-broker cluster, but you could choose to only add one broker at a time.
+Our cluster currently has partitions with 3 replicas.
+
+So we have eliminated the "remove first" approach for two reasons:
+
+1. Our broker count would drop to two (an even number)
+2. Decommissioning would never complete since there would be less brokers than the max number of partition replicas
+
+So we must first add additional brokers to the cluster before removing the older brokers. We will add two new brokers at the same time to go to a 5-broker cluster, but you could choose to only add one broker at a time.
 
 ![Overview](./images/overview.png)
 
