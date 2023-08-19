@@ -15,5 +15,5 @@ Here are some ways you can prepare for the rolling upgrade:
 - know how the rolling upgrade may impact your cluster
 - differentiate between various potential cluster affects; several can be ignored, some would mean waiting to continue, and a few mean to revert the process
 
-Right now a 3-broker Redpanda cluster is being deployed, along with Prometheus and Grafana for viewing metrics. Click next once you see that this process has completed (and you see a ready prompt).
+Right now a 3-broker Redpanda cluster is being deployed, along with Prometheus and Grafana for viewing metrics. Click `Start` once you see that this process has completed (and you see a ready prompt).
 

@@ -9,12 +9,20 @@
     },
     "steps": [
       {
-        "title": "Prepare",
+        "title": "Preparation",
         "text": "step1.md"
       },
       {
-        "title": "Upgrade",
+        "title": "Maintenance mode",
         "text": "step2.md"
+      },
+      {
+        "title": "Upgrading a broker",
+        "text": "step3.md"
+      },
+      {
+        "title": "Completing cluster upgrade",
+        "text": "step4.md"
       }
     ],
     "assets": {
@@ -22,8 +30,6 @@
         {"file": "compose.redpanda-0.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.redpanda-1.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.redpanda-2.yaml", "target": "~/", "chmod": "+w"},
-        {"file": "compose.redpanda-3.yaml", "target": "~/", "chmod": "+w"},
-        {"file": "compose.redpanda-4.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.prometheus.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.grafana.yaml", "target": "~/", "chmod": "+w"},
         {"file": "rpk-config.yaml", "target": "/etc/redpanda", "chmod": "+w"},
@@ -35,13 +41,9 @@
         {"file": "redpanda-config/redpanda-0/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-1/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-2/*", "target": "~/"},
-        {"file": "redpanda-config/redpanda-3/*", "target": "~/"},
-        {"file": "redpanda-config/redpanda-4/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-0/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-1/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-2/*", "target": "~/"},
-        {"file": "redpanda-data/redpanda-3/*", "target": "~/"},
-        {"file": "redpanda-data/redpanda-4/*", "target": "~/"},
         {"file": "grafana-config/dashboards/*", "target": "~/"},
         {"file": "grafana-config/provisioning/dashboards/*", "target": "~/"},
         {"file": "grafana-config/provisioning/datasources/*", "target": "~/"},

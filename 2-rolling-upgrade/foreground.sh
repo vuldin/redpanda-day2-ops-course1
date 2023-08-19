@@ -10,7 +10,7 @@ docker-compose \
 -f compose.grafana.yaml \
 up -d
 # create topic
-rpk topic create log
+rpk topic create log -p 3 -r 3
 # generate data
 ./generate-data.sh &
 

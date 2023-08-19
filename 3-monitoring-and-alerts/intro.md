@@ -1,4 +1,4 @@
-![Juggling Panda](./images/reppanda-juggling.png)
+![Redpanda playbook](./images/redpanda-playbook.png)
 
 # Monitoring and Alerting
 

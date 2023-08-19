@@ -6,9 +6,9 @@ This is the Github repo for the Redpanda day 2 operations masterclass, hosted on
 
 There are 3 scenarios focused on the following tasks:
 
-1. commissioning brokers
-2. upgrading your cluster
-3. monitoring and managing alerts with Prometheus and Grafana
+1. [Commissioning brokers](./1-broker-mgmt)
+2. [Upgrading your cluster](./2-rolling-upgrade)
+3. [Monitoring and Alerts](./3-monitoring-and-alerts)
 
 You will come away from this session knowing how to:
 
