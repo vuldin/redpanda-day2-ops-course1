@@ -29,6 +29,7 @@
         {"file": "compose.redpanda-2.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.redpanda-3.yaml", "target": "~/", "chmod": "+w"},
         {"file": "compose.redpanda-4.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.redpanda-5.yaml", "target": "~/", "chmod": "+w"},
         {"file": "rpk-config.yaml", "target": "/etc/redpanda", "chmod": "+w"},
         {"file": "delete-data.sh", "target": "~/", "chmod": "+x"},
         {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
@@ -41,11 +42,13 @@
         {"file": "redpanda-config/redpanda-2/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-3/*", "target": "~/"},
         {"file": "redpanda-config/redpanda-4/*", "target": "~/"},
+        {"file": "redpanda-config/redpanda-5/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-0/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-1/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-2/*", "target": "~/"},
         {"file": "redpanda-data/redpanda-3/*", "target": "~/"},
-        {"file": "redpanda-data/redpanda-4/*", "target": "~/"}
+        {"file": "redpanda-data/redpanda-4/*", "target": "~/"},
+        {"file": "redpanda-data/redpanda-5/*", "target": "~/"}
       ]
     }
   },

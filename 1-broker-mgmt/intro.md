@@ -16,5 +16,5 @@ A popular reason for increasing a cluster's broker count is to expand the cluste
 
 Right now a Redpanda cluster with 3 brokers is being deployed, along with Redpanda Console. Then a topic will be create with 3 partitions, each with 3 replicas. Finally a simple client (provided by `rpk`) will be started in the background to constantly produce data while you run through this scenario.
 
-Click `Next` once you see that this process has completed (and you see a ready prompt).
+Click `Start` once you see that this process has completed (and you see a ready prompt).
 

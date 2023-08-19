@@ -11,6 +11,9 @@ Check status of the decommission process (which may already be complete show and
 ```
 rpk redpanda admin brokers decommission-status 1
 ```{{exec}}
+
+The output will eventually include the following:
+
 ```
 Node 1 is decommissioned successfully.
 ```
@@ -48,7 +51,12 @@ Verify `redpanda-2` has completed decommission:
 ```
 rpk redpanda admin brokers decommission-status 2
 ```{{exec}}
-```Node 2 is decommissioned successfully.```
+
+The output will eventually include the following:
+
+```
+Node 2 is decommissioned successfully.
+```
 
 Stop the `redpanda-2` container:
 
