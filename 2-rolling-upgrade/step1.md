@@ -4,6 +4,8 @@ First get the current version of each broker in the cluster and verify that brok
 rpk redpanda admin brokers list
 ```{{exec}}
 
+![Overview](./images/overview.png)
+
 The output shows we are running `v23.2.4`, and that `MEMBERSHIP-STATUS`/`IS-ALIVE` is `active`/`true`:
 
 ```

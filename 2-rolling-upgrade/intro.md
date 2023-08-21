@@ -1,4 +1,4 @@
-![Juggling Panda](./images/reppanda-juggling.png)
+![Barbell Panda](./images/redpanda-barbell.png)
 
 # Upgrading Redpanda
 
