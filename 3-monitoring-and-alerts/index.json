@@ -9,10 +9,33 @@
     },
     "steps": [
       {
-        "title": "Links to running resources",
+        "title": "Verifying connectivity",
+        "text": "step1.md"
+      },
+      {
+        "title": "Viewing alerts",
         "text": "step1.md"
       }
-    ]
+    ],
+    "assets": {
+      "host01": [
+        {"file": "docker-compose.yml", "target": "~/", "chmod": "+w"},
+        {"file": "compose.grafana.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "new-alert-definition.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
+        {"file": "alert-generation/*", "target": "~/"},
+        {"file": "alert-generation/templates/*", "target": "~/"},
+        {"file": "config/*", "target": "~/"},
+        {"file": "config/alertmanager/*", "target": "~/"},
+        {"file": "config/grafana/*", "target": "~/"},
+        {"file": "config/grafana/provisioning/alerting/*", "target": "~/"},
+        {"file": "config/grafana/provisioning/dashboards/*", "target": "~/"},
+        {"file": "config/grafana/provisioning/datasources/*", "target": "~/"},
+        {"file": "config/jmx_exporter/*", "target": "~/"},
+        {"file": "config/prometheus/*", "target": "~/"},
+        {"file": "grafana-dashboards/*", "target": "~/"}
+      ]
+    }
   },
   "backend": {
     "imageid": "ubuntu-4GB"
