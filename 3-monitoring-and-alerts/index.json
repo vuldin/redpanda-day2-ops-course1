@@ -14,7 +14,15 @@
       },
       {
         "title": "Viewing alerts",
-        "text": "step1.md"
+        "text": "step2.md"
+      },
+      {
+        "title": "Custom visualization",
+        "text": "step3.md"
+      },
+      {
+        "title": "New alert",
+        "text": "step4.md"
       }
     ],
     "assets": {
