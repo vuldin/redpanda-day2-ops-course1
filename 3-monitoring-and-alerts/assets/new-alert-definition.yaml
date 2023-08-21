@@ -1,0 +1,13 @@
+rules:
+- alert: Reached storage limit
+  uid: 8a1b3199-9529-4d13-904c-5ff2e495a1e6
+  folder: Redpanda Critical
+  evaluation_group: critical
+  expr: redpanda_storage_disk_total_bytes - redpanda_storage_disk_free_bytes
+  comparison: gt
+  threshold: 180000000000
+  for: 1m
+  labels:
+    severity: critical
+  annotations:
+    summary: "We have used more than allocated amount of storage."
