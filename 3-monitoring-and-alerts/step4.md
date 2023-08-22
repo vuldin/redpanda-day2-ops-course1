@@ -45,5 +45,5 @@ docker-compose -f compose.grafana.yaml restart
 
 Open the [Grafana alerts]({{TRAFFIC_HOST1_3000}}/alerting/list) page to see that the new alert in the "Redpanda Critical" section.
 
-View the email sent from Grafana in your [inbox]({{TRAFFIC_HOST1_8025}}/).
+The alert should quickly move into "Pending" state and stay there for 1 minute, and then move to "Firing" state. You can then view the email sent from Grafana in your [inbox]({{TRAFFIC_HOST1_8025}}/).
 
