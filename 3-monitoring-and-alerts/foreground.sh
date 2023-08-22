@@ -7,4 +7,3 @@ rpk topic create log -p 3
 export ALERT_DEFINITIONS_YAML_FILE_LOCATION=../config/alert-definitions.yml
 export GRAFANA_ALERTS_YAML_FILE_LOCATION=../config/grafana/provisioning/alerting/alerts.yml
 export PROMETHEUS_ALERTS_YAML_FILE_LOCATION=../config/prometheus/alert-rules.yml
-

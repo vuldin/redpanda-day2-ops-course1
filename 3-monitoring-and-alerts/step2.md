@@ -55,4 +55,3 @@ Grafana is already populated with several good charts for monitoring Redpanda. I
 More details on these charts are available [here](https://github.com/redpanda-data/observability) and [here](https://docs.redpanda.com/docs/manage/monitoring/#use-redpanda-monitoring-examples).
 
 But what if you want to create a visualization for yourself? Let's create a new chart that tracks a useful metric: disk used.
-
