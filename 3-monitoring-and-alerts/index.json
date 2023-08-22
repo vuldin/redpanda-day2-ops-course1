@@ -30,6 +30,7 @@
         {"file": "docker-compose.yml", "target": "~/", "chmod": "+w"},
         {"file": "compose.grafana.yaml", "target": "~/", "chmod": "+w"},
         {"file": "new-alert-definition.yaml", "target": "~/", "chmod": "+w"},
+        {"file": "add-new-rule.sh", "target": "~/", "chmod": "+x"},
         {"file": "generate-data.sh", "target": "~/", "chmod": "+x"},
         {"file": "alert-generation/*", "target": "~/"},
         {"file": "alert-generation/templates/*", "target": "~/"},
@@ -41,7 +42,8 @@
         {"file": "config/grafana/provisioning/datasources/*", "target": "~/"},
         {"file": "config/jmx_exporter/*", "target": "~/"},
         {"file": "config/prometheus/*", "target": "~/"},
-        {"file": "grafana-dashboards/*", "target": "~/"}
+        {"file": "grafana-data/*", "target": "~/"},
+        {"file": "grafana-data/dashboards/*", "target": "~/"}
       ]
     }
   },
