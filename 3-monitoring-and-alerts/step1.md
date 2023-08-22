@@ -3,7 +3,7 @@
 Prometheus is configured to connect to the Redpanda cluster in its configuration file:
 
 ```
-cat observability/demo/config/prometheus/prometheus.yml
+cat config/prometheus/prometheus.yml
 ```{{exec}}
 
 In this file, the `scrape_configs` section has a job `redpanda`, and the static config targets list each broker. Prometheus will need to be updated over time as you commission/decommission new brokers.

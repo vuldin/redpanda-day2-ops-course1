@@ -1,16 +1,30 @@
-# Viewing alerts
-
 ## Alert definition file
 
-The [alert-definitions file](./config/alert-definitions.yml) is used to define alerts for either Prometheus or Grafana. Once you have found the Redpanda metrics you determined the alert you want, you can modify this file with the definition for your rule and then run [a python script](./alert-generation/generate.py) we provide to generate alert config files for Prometheus and/or Grafana. More details on how to run this script are in this [README](https://github.com/redpanda-data/observability/blob/main/alert-generation/README.md).
+The `alert-definitions` file is used to define alerts for either Prometheus or Grafana. The following command shows a portion of this file:
 
-> Note: In a production deployment you will likely only want to use alerting from one of these tools, but in this environment alerts are generated and used in both tools.
+```
+head -20 config/alert-definitions.yml
+```{{exec}}
 
-Later in this scenario we will modify this file to create a new alert. For now let's continue exploring Prometheus and Grafana.
+Once you have found the Redpanda metrics for the alert you want, you can modify this file with a new alert definition and then run the following python script:
+
+```
+head -20 alert-generation/generate.py
+```{{exec}}
+
+This script generates alert config files for Prometheus and/or Grafana (by default it generates both). More details on how to run this script are [here](https://github.com/redpanda-data/observability/blob/main/alert-generation/README.md). We'll run this script to generate a new alert definition once we progress further through this scenario.
+
+> Note: Production deployments would likely use alerting from only one of these tools, but we are generating alerts in this environment for both tools.
 
 ## View alerts in Prometheus
 
-The [Prometheus alerts]({{TRAFFIC_HOST1_9090}}/alerts) page shows the status and details for each alert. If you wanted to modify these alerts, you would edit the [alert-rules file](./config/prometheus/alert-rules.yml) and then restart Prometheus. Remember that the alert-generation script mentioned above can generate this file for you! We will leave these alerts at their default values for now.
+The [Prometheus alerts]({{TRAFFIC_HOST1_9090}}/alerts) page shows the status and details for each alert. If you wanted to modify these alerts, you would edit the `alert-rules` file and then restart Prometheus. This file is located here:
+
+```
+head -20 config/prometheus/alert-rules.yml
+```{{exec}}
+
+Remember that the alert-generation script mentioned above can generate this file for you! We will leave these alerts at their default values for now.
 
 ## View alerts in Grafana
 
@@ -22,17 +36,15 @@ But if you have configured Prometheus alerts they will also show up here:
 
 ![grafana alerts 2](./images/grafana-alerts-2.png)
 
-This environment has alerts configured in both Prometheus and Grafana to show how they are configured, but in a production environment you would only want to have one set of alerts.
-
 > Note: You can only silence Grafana alerts here (not the alerts for Prometheus). Silencing alerts ensures no notifications will be sent out for any matching alerts. This does not mean the alerts won't continue to fire in Grafana!
 
 ## Send test email
 
-When an alert fires, a notification can be sent to various contact points. This environment has a default email contact point configured [here]({{TRAFFIC_HOST1_3000}}/alerting/notifications)
+When an alert fires, a notification can be sent to various contact points. This environment has a default email contact point configured [here]({{TRAFFIC_HOST1_3000}}/alerting/notifications):
 
 ![grafana alerts 3](./images/grafana-alerts-3.png)
 
-Click the edit action button, click the "Test" button, and then click "Send test notification". This will fire off an email to that you can read in your [inbox]({{TRAFFIC_HOST1_8025}}/).
+Click the edit action button, then click the "Test" button, and then click "Send test notification". This will fire off an email to that you can read in your [inbox]({{TRAFFIC_HOST1_8025}}/):
 
 ![mailhog 1](./images/mailhog-1.png)
 
