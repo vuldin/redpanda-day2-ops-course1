@@ -30,6 +30,9 @@ wget https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux32 -O /usr/bi
 Once prerequisite dependencies are installed, a few commands are needed in order to get your environment into the required state:
 
 ```
+# enter working folder
+cd  assets
+
 # start 3 initial brokers
 docker-compose \
 -p 1-commissioning-brokers \

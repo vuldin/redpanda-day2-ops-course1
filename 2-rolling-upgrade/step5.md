@@ -9,7 +9,7 @@ We can now continue upgrading the remaining brokers `redpanda-0`. When working w
 bash automate.sh
 ```{{exec}}
 
-Take a look at the automation script, see if how that applies to your environment?:
+Take a look at the automation script, how would you change it to apply to your own environment?:
 
 ```
 #!/bin/bash
