@@ -30,6 +30,9 @@ wget https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux32 -O /usr/bi
 Once prerequisite dependencies are installed, a few commands are needed in order to get your environment into the required state:
 
 ```
+# enter working folder
+cd  assets
+
 # start 3 initial brokers
 docker-compose \
 -p 1-commissioning-brokers \
@@ -69,7 +72,9 @@ First get the current version of each broker in the cluster and verify that brok
 
 ```
 rpk redpanda admin brokers list
-```
+```{{exec}}
+
+![Overview](./images/overview.png)
 
 The output shows we are running `v23.2.4`, and that `MEMBERSHIP-STATUS`/`IS-ALIVE` is `active`/`true`:
 
@@ -88,69 +93,106 @@ For simplicity you can run the following command, which makes use of the Docker 
 
 ```
 ./get-versions.sh
-```
+```{{exec}}
 
 So the brokers in the cluster are each running `v23.2.4`, and `v23.2.5` is available. We will upgrade to this version.
 
 > Note for future learners: `v23.2.5` was the latest when this scenario was created, so we'll upgrade to that version in the next steps.
 
+
 ## Maintenance mode
 
-Now you know that you want to upgrade to `v23.2.5`. The first step is to put the target broker into maintenance mode.
+Upgrade process is different depending on your platform. These steps follow the Docker platform steps. See [our docs](https://docs.redpanda.com/docs/manage/cluster-maintenance/rolling-upgrade/#upgrade-your-version) for steps to take on other platforms.
 
-First verify the cluster is healthy:
+The steps below provide some convenience scripts to make sure each step is less prone to error and to be more focused on what you are doing by running each command (rather than the Docker environment). Feel free to look at the contents of any script to get more details on exactly what is being done under the covers.
 
-```
-rpk cluster health
-```
-
-A broker should be put into maintenance mode before applying an upgrade. More details on what maintenance mode is, what it is used for, other details are found in [this page](https://docs.redpanda.com/docs/manage/node-management/) in our docs.
-
-We will now put `redpanda-2` into maintenance mode:
+First stop `redpanda-2` broker:
 
 ```
-rpk cluster maintenance enable 2 --wait
+./stop-broker.sh redpanda-2
+```{{exec}}
+
+![ Update ](./images/update-redpanda-2.png)
+Then update `redpanda-2` to version `23.2.5`. The following command runs a convenience script that edits the Docker compose file responsible for `repanda-2` to make use of `v23.2.5`:
+
+```
+./update-version.sh redpanda-2 v23.2.5
+```{{exec}}
+
+Start `redpanda-2` with the updated version:
+
+```
+docker-compose -p 2-rolling-upgrade -f compose.redpanda-2.yaml up -d
+```{{exec}}
+
+Check following metrics in [Grafana]({{TRAFFIC_HOST1_3000}}/dashboards) at `Dashboards > General > Redpanda Ops Dashboard` :
+
+|  Metric	 |  Description  | 
+| ----------------------------------------- | ----------------------------------------- |
+| redpanda_kafka_under_replicated_replicas | If this shows any non-zero value, then replication cannot catch up, and the upgrade should be paused. |
+| redpanda_cluster_unavailable_partitions | Before restart, wait for this to show zero unavailable partitions. |
+| redpanda_kafka_request_bytes_total | Before restart, the produce and consume rate for each broker should recover to the pre-upgrade value. |
+| redpanda_kafka_request_latency_seconds | Before restart, the p99 histogram should recover to the pre-upgrade value. |
+| redpanda_rpc_request_latency_seconds | Before restart, the p99 histogram should recover to the pre-upgrade value. |
+| redpanda_cpu_busy_seconds_total | Check the CPU utilization. The derivative gives you a 0.0-1.0 value for how much time the core was busy in a given second. |
+
+
+
+Verify that `redpanda-2` is now at `v23.2.5`:
+
+```
+rpk redpanda admin brokers list
+```{{exec}}
+
+```
+NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
+0        1          active             true      v23.2.4 - e8a873c16bf9c25132859b55bd9ea6acb901a496
+1        1          active             true      v23.2.4 - e8a873c16bf9c25132859b55bd9ea6acb901a496
+2        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
 ```
 
-You can check the maintenance status with the following command:
+![ Upgraded Redpanda 2 ](./images/upgraded-redpanda-2.png)
 
+Bring `redpanda-2` out of maintenance mode:
+
+```
+rpk cluster maintenance disable 2
+```{{exec}}
+
+Verify no brokers are in maintenance mode:
 ```
 rpk cluster maintenance status
-```
-
-The output shows that `DRAINING`/`FINISHED` for broker 2 is `true`/`true`:
+```{{exec}}
 
 ```
 NODE-ID  DRAINING  FINISHED  ERRORS  PARTITIONS  ELIGIBLE  TRANSFERRING  FAILED
 0        false     false     false   0           0         0             0
 1        false     false     false   0           0         0             0
-2        true      true      false   1           0         0             0
+2        false     false     false   0           0         0             0
 ```
 
-> Note: The output above shows a value of `1` in the `PARTITIONS` column for broker 2. Your output may show a different partition count, as this is the number of leader partitions located on this broker.
-
-The cluster will continue to report as healthy, and clients will be able to connect. You can verify cluster health again:
+Verify cluster health:
 
 ```
 rpk cluster health
+```{{exec}}
+
+
+Now that `redpanda-2` is back in service, it is eligible for partition leadership again. Take a look at all partition leaders for Topic log: 
+```
+rpk topic describe log -p | awk '{printf("%10s%10s\n"), $1,$2}'
+```{{exec}}
+
+You'll see that each partition is assigned to different leader node (assigned node can be varied, it'll take a few minutes to reelect leaders.):
+```
+ PARTITION    LEADER
+         0         1
+         1         2
+         2         0
 ```
 
-Now check grafana for any issues: [Grafana]({{TRAFFIC_HOST1_3000}}/)
+Click `Next` to continue to with the next steps.
 
-Open the dashboard at `Dashboards > General > Redpanda Ops Dashboard`.
-
-It is normal to see changes in metrics such as:
-- increase in leadership transfers
-- nominally higher latencies
-- nominally higher resource (CPU/memory) usage
-
-These normal behaviors should appear and then gradual return to lower values once the cluster completes with handling the maintenance change on the broker. Rather than focus on these changes above, try to focus on areas like the following:
-- high spikes in latency
-- high spikes in CPU usage
-- leaderless partitions
-- under-replicated partitions
-
-Now `redpanda-2` is in maintenance mode, the cluster is healthy, metrics are showing no issues in Grafana, and we are ready to upgrade.
 
 ## Upgrading a broker
 
@@ -206,45 +248,138 @@ rpk cluster health
 
 Click `Next` to continue to with the final steps.
 
+## Upgrade redpanda-1
+
+We can now continue upgrading the remaining brokers `redpanda-1`, and here is a little challenge for you. Try continue upgrading the broker.
+
+![ Upgraded Redpanda 1 ](./images/upgraded-redpanda-1.png)
+
+Some hint:
+
+ - Check the cluster health
+ - Put redpanda-1 in maintenance mode, always check it's status
+ - Stop the broker by running `bash stop-broker.sh redpanda-1` 
+ - Update the broker version by running `bash update-version.sh redpanda-1 v23.2.5` 
+ - Start up the new broker by running `docker-compose -p 2-rolling-upgrade -f compose.redpanda-1.yaml up -d`
+ - Put redpanda-1 back online
+
+Verify you can verify that `redpanda-1` broker is upgraded to `v23.2.5`:
+
+```
+rpk redpanda admin brokers list
+```{{exec}}
+
+```
+NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
+0        1          active             true      v23.2.4 - e8a873c16bf9c25132859b55bd9ea6acb901a496
+2        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
+1        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
+```
+Click `Next` to continue to with the final steps.
+
 ## Completing cluster upgrade
+We can now continue upgrading the remaining brokers `redpanda-0`. When working with large clusters, it's normal that we automated this process, run the following command that automatically upgrades `redpanda-0`.
 
-We can now continue upgrading the remaining brokers (`redpanda-0`, and `redpanda-1`), and we'll continue in reverse order with `redpanda1`.
+![ Upgraded Redpanda 0 ](./images/upgraded-redpanda-0.png)
 
-> Note: While the commands below are provided, the details of what each command does is not included.  Instead you can find these details on the previous section where we walked through all same commands for `redpanda-2`. Copy and paste each command into the terminal to the left and run them separately.
 
-Here are the commands to follow in order for `redpanda-1`:
-
-```
-rpk cluster health
-rpk cluster maintenance enable 1 --wait
-rpk cluster maintenance status
-rpk cluster health
-./stop-broker.sh redpanda-1
-./update-version.sh redpanda-1 v23.2.5
-docker-compose -p 2-rolling-upgrade -f compose.redpanda-1.yaml up -d
-rpk redpanda admin brokers list
-rpk cluster maintenance disable 1
-rpk cluster maintenance status
-```
-
-And here are the commands for `redpanda-0`:
+> Note: We have repurpose the from last steps for automation, you are welcome to use whatever automation tools thar works for you, run the automation script, it will automatically upgrade `redpanda-0` for you.
 
 ```
-rpk cluster health
-rpk cluster maintenance enable 0 --wait
-rpk cluster maintenance status
-rpk cluster health
-./stop-broker.sh redpanda-0
-./update-version.sh redpanda-0 v23.2.5
+bash automate.sh
+```{{exec}}
+
+Take a look at the automation script, see if how that applies to your environment?:
+
+```
+#!/bin/bash
+
+echo -n  "Checking cluster health"
+for i in {1..5}; do echo  -n ".."; sleep 0.5; done
+
+echo ""
+if [[ $(rpk cluster health |  grep 'down' |grep -oP '(?<=\[).*(?=])' | wc -c) -ne 0 ]]; then
+    echo "Cluster not healthy, cannot upgrade until resolved, run rpk cluster health for more info.. "
+    exit;
+fi
+
+echo -n "Enabling maintenance for node "
+for i in {1..5}; do echo  -n ".."; sleep 0.5; done
+echo ""
+rpk cluster maintenance enable 0
+
+echo ""
+echo -n "Check if maintenance succesd.."
+while ! rpk cluster maintenance status | awk 'NR==2{ print; }' | awk '{print $2 $3 $4}'| grep truetruefalse; do
+  echo  -n ".."
+  sleep 1;
+done
+
+echo ""
+echo -n  "Checking cluster health"
+for i in {1..5}; do echo  -n ".."; sleep 0.5; done
+
+if [[ $(rpk cluster health |  grep 'down' |grep -oP '(?<=\[).*(?=])' | wc -c) -ne 0 ]]; then
+    echo "Cluster not healthy, cannot upgrade until resolved, run rpk cluster health for more info.. "
+    exit;
+fi
+
+echo ""
+echo -n "Stopping Redpanda "
+for i in {1..5}; do echo  -n ".."; sleep 0.5; done
+echo ""
+bash stop-broker.sh redpanda-0
+
+echo ""
+echo -n "Updating Redpanda version "
+for i in {1..5}; do echo  -n ".."; sleep 0.5; done
+echo ""
+bash update-version.sh redpanda-0 v23.2.5
+
+echo ""
+echo -n "Restarting Redpanda "
+for i in {1..2}; do echo  -n ".."; sleep 0.5; done
+echo ""
 docker-compose -p 2-rolling-upgrade -f compose.redpanda-0.yaml up -d
-rpk redpanda admin brokers list
+
+echo ""
+echo -n "Check cluster status.."
+while ! docker container inspect -f '{{.State.Running}}' redpanda-0.local; do
+  echo  -n ".."
+  sleep 1;
+done
+
+echo ""
+echo -n "Bringing node back online"
+for i in {1..2}; do echo  -n ".."; sleep 0.5; done
+echo ""
 rpk cluster maintenance disable 0
-rpk cluster maintenance status
+
+
+echo -n "Check online status.."
+while ! rpk cluster maintenance status | awk 'NR==2{ print; }' | awk '{print $2 $3 $4}'| grep falsefalsefalse; do
+  echo  -n ".."
+  sleep 1;
+done
+
+echo ""
+echo "Current cluster version:"
+for i in {1..2}; do echo  -n ".."; sleep 0.5; done
+echo ""
+rpk redpanda admin brokers list
+
+echo -n "Node upgrade successful"
 ```
 
 Finally, you can verify that all brokers are upgraded to `v23.2.5`:
 
 ```
 rpk redpanda admin brokers list
-```
+```{{exec}}
 
+```
+NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
+0        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
+1        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
+2        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
+```
