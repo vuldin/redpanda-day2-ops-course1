@@ -72,7 +72,7 @@ First get the current version of each broker in the cluster and verify that brok
 
 ```
 rpk redpanda admin brokers list
-```{{exec}}
+```
 
 ![Overview](./images/overview.png)
 
@@ -93,7 +93,7 @@ For simplicity you can run the following command, which makes use of the Docker 
 
 ```
 ./get-versions.sh
-```{{exec}}
+```
 
 So the brokers in the cluster are each running `v23.2.4`, and `v23.2.5` is available. We will upgrade to this version.
 
@@ -108,7 +108,7 @@ First verify the cluster is healthy:
 
 ```
 rpk cluster health
-```{{exec}}
+```
 
 A broker should be put into maintenance mode before applying an upgrade. When under maintenance mode, Redpanda shifts partition leadership to other cluster nodes.
 More details on what maintenance mode is, what it is used for, other details are found in [this page](https://docs.redpanda.com/docs/manage/node-management/) in our docs.
@@ -117,7 +117,7 @@ More details on what maintenance mode is, what it is used for, other details are
 Take a look at all partition leaders for Topic log: 
 ```
 rpk topic describe log -p | awk '{printf("%10s%10s\n"), $1,$2}'
-```{{exec}}
+```
 
 You'll see that each partition is assigned to different leader node:
 ```
@@ -131,7 +131,7 @@ We will now put `redpanda-2` into maintenance mode:
 
 ```
 rpk cluster maintenance enable 2 --wait
-```{{exec}}
+```
 
 ![maintenance](./images/maintenance-redpanda-2.png)
 
@@ -139,7 +139,7 @@ You can check the maintenance status with the following command:
 
 ```
 rpk cluster maintenance status
-```{{exec}}
+```
 
 The output shows that `DRAINING`/`FINISHED` for broker 2 is `true`/`true`:
 
@@ -155,7 +155,7 @@ NODE-ID  DRAINING  FINISHED  ERRORS  PARTITIONS  ELIGIBLE  TRANSFERRING  FAILED
 Take a look at all partition leaders for Topic log again: 
 ```
 rpk topic describe log -p | awk '{printf("%10s%10s\n"), $1,$2}'
-```{{exec}}
+```
 
 You'll see that each partition is assigned to different leader node :
 ```
@@ -170,7 +170,7 @@ The cluster will continue to report as healthy, and clients will be able to conn
 
 ```
 rpk cluster health
-```{{exec}}
+```
 
 Now check grafana for any issues: [Grafana]({{TRAFFIC_HOST1_3000}}/dashboards)
 
@@ -252,24 +252,24 @@ Click `Next` to continue to with the final steps.
 
 ## Upgrade redpanda-1
 
-We can now continue upgrading the remaining brokers `redpanda-1`, and here is a little challenge for you. Try continue upgrading the broker.
+We can now continue upgrading the remaining brokers (`redpanda-1` and `redpanda-0`). Here's a little challenge for you: continue upgrading the brokers following the same steps as above.
 
 ![ Upgraded Redpanda 1 ](./images/upgraded-redpanda-1.png)
 
-Some hint:
+Some hints:
 
  - Check the cluster health
- - Put redpanda-1 in maintenance mode, always check it's status
- - Stop the broker by running `bash stop-broker.sh redpanda-1` 
- - Update the broker version by running `bash update-version.sh redpanda-1 v23.2.5` 
- - Start up the new broker by running `docker-compose -p 2-rolling-upgrade -f compose.redpanda-1.yaml up -d`
- - Put redpanda-1 back online
+ - Put `redpanda-1` in maintenance mode, always check its status
+ - Stop the broker by running `bash stop-broker.sh redpanda-1`
+ - Update the broker version by running `bash update-version.sh redpanda-1 v23.2.5`
+ - Start up the broker by running `docker-compose -p 2-rolling-upgrade -f compose.redpanda-1.yaml up -d`
+ - Put `redpanda-1` back online (bring out of maintenance mode)
 
-Verify you can verify that `redpanda-1` broker is upgraded to `v23.2.5`:
+You can verify that `redpanda-1` is upgraded to `v23.2.5`:
 
 ```
 rpk redpanda admin brokers list
-```{{exec}}
+```
 
 ```
 NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
@@ -277,21 +277,23 @@ NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
 2        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
 1        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
 ```
+
 Click `Next` to continue to with the final steps.
 
 ## Completing cluster upgrade
+
 We can now continue upgrading the remaining brokers `redpanda-0`. When working with large clusters, it's normal that we automated this process, run the following command that automatically upgrades `redpanda-0`.
 
 ![ Upgraded Redpanda 0 ](./images/upgraded-redpanda-0.png)
 
 
-> Note: We have repurpose the from last steps for automation, you are welcome to use whatever automation tools thar works for you, run the automation script, it will automatically upgrade `redpanda-0` for you.
+> Note: We have repurposed the previous steps for automation, and you are welcome to use whatever automation tools thar works for you. This simple automation script will automatically upgrade `redpanda-0` for you.
 
 ```
 bash automate.sh
-```{{exec}}
+```
 
-Take a look at the automation script, see if how that applies to your environment?:
+Taking a look at the automation script to see how it may apply to your environment:
 
 ```
 #!/bin/bash
@@ -377,7 +379,7 @@ Finally, you can verify that all brokers are upgraded to `v23.2.5`:
 
 ```
 rpk redpanda admin brokers list
-```{{exec}}
+```
 
 ```
 NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
@@ -385,3 +387,4 @@ NODE-ID  NUM-CORES  MEMBERSHIP-STATUS  IS-ALIVE  BROKER-VERSION
 1        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
 2        1          active             true      v23.2.5 - c16a796c0ac5087e1a05ae3ba66bed101e305126
 ```
+
