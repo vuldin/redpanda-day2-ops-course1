@@ -1,8 +1,0 @@
-rpk:
-  kafka_api:
-    brokers:
-    - localhost:9092
-  admin_api:
-    addresses:
-    - localhost:9644
-

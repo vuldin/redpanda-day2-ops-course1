@@ -1,8 +1,0 @@
-{
-  "items": [
-    { "path": "1-broker-mgmt" },
-    { "path": "2-rolling-upgrade" },
-    { "path": "3-monitoring-and-alerts" }
-  ]
-}
-

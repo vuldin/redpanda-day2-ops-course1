@@ -1,0 +1,50 @@
+image:
+  tag: v23.2.14
+tls:
+  enabled: false
+  certs:
+    default:
+      secretRef:
+        name: tls-external
+      caEnabled: true
+    external:
+      secretRef:
+        name: tls-external
+      caEnabled: true
+auth:
+  sasl:
+    enabled: true
+    secretRef: redpanda-superusers
+external:
+  enabled: true
+  type: LoadBalancer
+  domain: local
+storage:
+  persistentVolume:
+    storageClass: csi-driver-lvm-striped-xfs
+    size: 1500Gi
+#  tiered:
+#    config:
+#      cloud_storage_enabled: true
+#      cloud_storage_azure_shared_key: yourkey
+#      cloud_storage_azure_storage_account: yoursa
+#      cloud_storage_azure_container: yourcontainer
+listeners:
+  kafka:
+    external:
+      default:
+        tls:
+          enabled: true
+  schemaRegistry:
+    external:
+      default:
+        tls:
+          enabled: true
+  http:
+    external:
+      default:
+        tls:
+          enabled: true
+console:
+  enabled: true
+

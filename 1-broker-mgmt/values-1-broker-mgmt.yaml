@@ -1,0 +1,11 @@
+tolerations:
+- effect: NoSchedule
+  key: redpanda
+  operator: Equal
+  value: "true"
+nodeSelector:
+  nodetype: redpanda
+statefulset:
+  updateStrategy:
+    type: OnDelete
+

@@ -1,59 +1,6 @@
-![Barbell Panda](./images/reppanda-barbell.png)
-
 # Commissioning Redpanda Brokers
 
-## Prerequisites
-
-The following commands will install dependencies. The final script `delete-data.sh` will set ownership to the redpanda (UID 101) user and also clear the Redpanda data directory (to reset between runs):
-
-```
-# install rpk
-curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
-unzip rpk-linux-amd64.zip -d /usr/local/bin/
-rm rpk-linux-amd64.zip
-
-# config rpk
-mv /etc/redpanda/rpk-config.yaml /etc/redpanda/redpanda.yaml
-
-# install yq
-wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-
-# install jq
-wget https://github.com/jqlang/jq/releases/download/jq-1.6/jq-linux32 -O /usr/bin/jq && chmod +x /usr/bin/jq
-
-# fix ownership
-./delete-data.sh
-```
-
-## Initial setup
-
-Once prerequisite dependencies are installed, a few commands are needed in order to get your environment into the required state:
-
-```
-# enter working folder
-cd  assets
-
-# start 3 initial brokers
-docker-compose \
--p 1-commissioning-brokers \
--f compose.redpanda-0.yaml \
--f compose.redpanda-1.yaml \
--f compose.redpanda-2.yaml \
--f compose.console.yaml \
-up -d
-
-# create topic
-rpk topic create log -p 3 -r 3
-
-# generate data
-./generate-data.sh &
-```
-
-## Intro
-
-> Note: The details below were originally created for killercoda. Any references to locations on the screen, output in various places, or clicking specific buttons won't be applicable when running locally.
-
-*Here is a [link to our docs](https://docs.redpanda.com/docs/manage/cluster-maintenance/decommission-brokers/) on this topic.*
+*Here is a [link to our docs](https://docs.redpanda.com/current/manage/kubernetes/decommission-brokers/) on this topic.*
 
 This scenario focuses on commissioning (adding/removing) brokers.
 
@@ -65,187 +12,131 @@ A popular reason for increasing a cluster's broker count is to expand the cluste
 - Durability: you should have more brokers than your lowest partition replication factor
 - partition count: this value is determined primarily by the CPU core count of the overall cluster
 
-Right now a Redpanda cluster with 3 brokers is being deployed, along with Redpanda Console. Then a topic will be create with 3 partitions, each with 3 replicas. Finally a simple client (provided by `rpk`) will be started in the background to constantly produce data while you run through this scenario.
+One of the most common reasons for decommissioning brokers is upgrading Kubernetes, which is done by replacing the nodes Redpanda pods run on with ones from a new node pool.
 
-Click `Start` once you see that this process has completed (and you see a ready prompt).
+## Prerequisites
 
-## Step 1: Adding brokers
+Run through the prerequisites and steps for creating a cluster as shown in [scenario 0](../0-cluster-setup/README.md).
 
-You will be replacing the cluster's brokers while keeping the cluster available for clients. A likely reason for this could be that you need to replace/upgrade the underlying physical/virtual hardware.
+## Overview
 
-But do you know if you should first remove and then add a broker, or if you should add and then remove a broker? We'll call these two approaches "remove first" and "add first".
+This guide walks through the process of moving pods of a Redpanda deployment from one node pool to another. This is an infrequent process that is the basis for some maintenance tasks, such as upgrading Kubernetes in your cluster.
 
-A cluster cannot reach majority consensus with two brokers (or any even number), so we should not drop below three brokers. Remember that we currently have three brokers!
+These are the steps at a high level:
 
-The same rule applies to partition replicas. You can find your cluster's highest partition replica count using `rpk`:
+1. [Create new node pool](#create-a-new-node-pool)
+2. [Tune new nodes](#tune-new-nodes)
+3. [Update Redpanda deployment](#update-statefulset)
+4. [Move Redpanda](#move-redpanda-pods-to-new-nodes)
 
-```
-rpk topic ls | awk '{print $3}' | grep -v REPLICAS | sort | tail -1
-```
+## Create a new node pool
 
-Our cluster currently has partitions with 3 replicas.
-
-So we have eliminated the "remove first" approach for two reasons:
-
-1. Our broker count would drop to two (an even number)
-2. Decommissioning would never complete since there would be less brokers than the max number of partition replicas
-
-So we must first add additional brokers to the cluster before removing the older brokers. We will add two new brokers at the same time to go to a 5-broker cluster, but you could choose to only add one broker at a time.
-
-![Overview](./images/overview.png)
-
-> Note: It is safe to **add** multiple brokers to a cluster without waiting because new brokers hold no partition data. But since existing brokers do hold data, you should only **remove** a single broker at a time.
-
-Add the two additional brokers to the cluster:
+Run the following command to create a new node pool:
 
 ```
-docker-compose -p 1-commissioning-brokers -f compose.redpanda-3.yaml -f compose.redpanda-4.yaml up -d
+az aks nodepool add -g $RESOURCE_GROUP --cluster-name $CLUSTER_NAME -n nodepool2 --enable-node-public-ip --node-vm-size Standard_L8s_v3 --kubernetes-version 1.26.6
 ```
 
-Verify the cluster is now a healthy 5-broker cluster:
+This command will create a new node pool named 'nodepool2' for your cluster and located in the same resource group. A Kubernetes version is given, which is the default version at the time of this writing.
+
+Taint these nodes with a 'redpanda' parameter so that the helm chart will have a way to know these are the preferred nodes. First get the list of nodes:
+
+```
+kubectl get node -o wide
+```
+
+Example output:
+
+```
+NAME                                STATUS   ROLES   AGE     VERSION   INTERNAL-IP   EXTERNAL-IP      OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+aks-nodepool1-51376000-vmss000000   Ready    agent   7d22h   v1.26.6   10.224.0.4    172.202.90.125   Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+aks-nodepool1-51376000-vmss000001   Ready    agent   7d22h   v1.26.6   10.224.0.5    172.202.90.132   Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+aks-nodepool1-51376000-vmss000002   Ready    agent   7d22h   v1.26.6   10.224.0.6    172.202.90.141   Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+aks-nodepool2-12587716-vmss000000   Ready    agent   9m15s   v1.26.6   10.224.0.8    13.89.200.215    Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+aks-nodepool2-12587716-vmss000001   Ready    agent   9m1s    v1.26.6   10.224.0.7    13.89.200.221    Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+aks-nodepool2-12587716-vmss000002   Ready    agent   9m      v1.26.6   10.224.0.9    13.89.200.118    Ubuntu 22.04.3 LTS   5.15.0-1051-azure   containerd://1.7.5-1
+```
+
+In the above output there are six nodes, and the bottom three are part of the new nodepool. Run the following command to taint and add a label to each of the three new nodes for Redpanda:
+
+```
+kubectl taint node -l agentpool=nodepool2 redpanda=true:NoSchedule
+kubectl label node -l agentpool=nodepool2 nodetype=redpanda
+```
+
+> Note: The above command assumes you used 'nodepool2' for the name of your node pool (update as needed).
+
+## Tune new nodes
+
+Follow the same steps in the cluster setup [here](../0-cluster-setup/README.md#tune-kubernetes-nodes) to tune the newly added nodes
+
+## Update StatefulSet
+
+The StatefulSet resource controls the deployment of pods where Redpanda brokers run. The existing StatefulSet needs to be reconfigured so that it only schedules pods on the new Kubernetes nodes (based on the taint configured above).
+
+First delete the existing StatefulSet:
+
+```
+kubectl delete sts redpanda -n redpanda --cascade=orphan
+```
+
+The `--cascade=orphan` flag says to keep the existing pods running (in spite of the controlling StatefulSet being deleted).
+
+Now replace the StatefulSet with a new one that ensures Redpanda pods will only be assigned to appropriate nodes:
+
+```
+helm upgrade redpanda redpanda --repo https://charts.redpanda.com -n redpanda --wait -f values-1-broker-mgmt.yaml --reuse-values
+```
+
+The `values-1-broker-mgmt.yaml` file includes a change to the update strategy for pods so the new StatefulSet doesn't immediately start deleting pods. We will do this manually to account for the need to delete the persistent volume claim (PVC) and also to verify cluster health along the way.
+
+## Move Redpanda pods to new nodes
+
+List the persistent volume claims (PVCs) for the cluster:
+
+```
+kubectl get pvc -n redpanda -o wide
+```
+
+The following steps need to be taken for each Redpanda pod:
+
+Delete the PVC associated with the last pod in the cluster (in this case `redpanda-2`)
+
+```
+kubectl delete pvc datadir-redpanda-2 -n redpanda --wait=false
+```
+
+The `--wait=false` flag tells Kubernetes to not actually delete the PVC until the associated pod is delete.
+
+Delete the associated pod:
+
+```
+kubectl delete pod redpanda-2 -n redpanda
+```
+
+Follow the broker logs as Redpanda reacts to the broker loss:
+
+```
+stern -A --init-containers=false "redpanda-\d"
+```
+
+Eventually logs will slow down but the cluster will remain in an unhealthy state with 1 of 2 containers within each pod available. This can be verified with the following command:
 
 ```
 rpk cluster health
 ```
 
-You'll see new nodes in the cluster:
-```
-CLUSTER HEALTH OVERVIEW
-=======================
-Healthy:                     true
-Unhealthy reasons:           []
-Controller ID:               0
-All nodes:                   [0 1 2 3 4]
-Nodes down:                  []
-Leaderless partitions:       []
-Under-replicated partitions: []
-```
-
-A cluster has seed servers to help it startup and join brokers correctly to the running cluster. You want to ensure that each broker in the cluster has the same seed server list, and that the list contains at least three entries (the more the better). You also want to make sure there is at least one seed server available at all times. More details [here](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/manual/production/production-deployment/#configure-the-seed-servers).
-
-![Original Cluster](./images/original_cluster.png)
-
-Here is the current seed server list in the cluster:
-```
-docker exec -it redpanda-0.local cat /etc/redpanda/redpanda.yaml | yq '.redpanda.seed_servers'
-```
-
-The 2 additional brokers were added to the broker with an updated seed server list that contained themselves plus `redpanda-0`.
-![Update Seed Server List](./images/update_seed.png)
-
-We will now apply this same update to the Redpanda configuration for `redpanda-0`:
-```
-./update-seeds.sh
-```
-
-Make sure the seed server list is updated in `redpanda-0`:
-```
-docker exec -it redpanda-0.local cat /etc/redpanda/redpanda.yaml | yq '.redpanda.seed_servers'
-```
-
-
-`redpanda-0` must be restarted for this change to take affect:
+The broker ID associated with the deleted pod (in this case '2') will be down, and it will still be part of the cluster. Decommission this broker to remove it from the cluster:
 
 ```
-docker-compose -p 1-commissioning-brokers -f compose.redpanda-0.yaml restart
+rpk redpanda admin brokers decommission 2 --force
 ```
 
-Now `redpanda-0`, `redpanda-3`, and `redpanda-4` share an identical seed server list that excludes the other two brokers. These are the two brokers that will be removed next.
-
-## Step 2: Removing a broker
-
-![Decommission redpanda-1](./images/decommissioning-1.png)
-
-Decommission the first of the two old brokers, `redpanda-1`:
+Now the cluster will soon become healthy again:
 
 ```
-rpk redpanda admin brokers decommission 1
+rpk cluster health
 ```
 
-Check status of the decommission process (which may already be complete show and empty table):
-
-```
-rpk redpanda admin brokers decommission-status 1
-```
-
-The output will eventually include the following:
-
-```
-Node 1 is decommissioned successfully.
-```
-
-You can now see that no partitions have their replicas on `redpanda-1`:
-
-```
-rpk topic describe -p log
-```
-
-```
-PARTITION  LEADER  EPOCH  REPLICAS  LOG-START-OFFSET  HIGH-WATERMARK
-0          4       3      [0 3 4]   0                 56030
-1          2       2      [0 2 3]   0                 54760
-2          2       2      [2 3 4]   0                 54810
-```
-
-The `redpanda-1` container can now be stopped:
-
-```
-docker-compose -p 1-commissioning-brokers -f compose.redpanda-1.yaml stop
-```
-
-Now repeat the same decommission steps for `redpanda-2`:
-![Decommission redpanda-2](./images/decommissioning-2.png)
-
-Decommission `redpanda-2`:
-
-```
-rpk redpanda admin brokers decommission 2
-```
-
-Verify `redpanda-2` has completed decommission:
-
-```
-rpk redpanda admin brokers decommission-status 2
-```
-
-The output will eventually include the following:
-
-```
-Node 2 is decommissioned successfully.
-```
-
-Stop the `redpanda-2` container:
-
-```
-docker-compose -p 1-commissioning-brokers -f compose.redpanda-2.yaml stop
-```
-
-You can view cluster health and other details with [Redpanda Console]({{TRAFFIC_HOST1_8080}}/).
-
-See broker status under cluster overview:
-
-![Console broker status](./images/console-overview.png)
-
-See location of partition replicas under _Topics>log>partitions_:
-
-![Console partition replicas](./images/console-replicas.png)
-
-## Step 3: Challenge
-
-You now have a cluster with 3 brokers, two of which have been replaced. In a real deployment, you could have been going through this process in order to upgrade the underlying hardware for each broker. If that were the case, then the next steps would be to follow the same process as above, but for `redpanda-0`:
-
-![Challenge.png](./images/challenge.png)
-
-1. add an additional broker `redpanda-5` with seeds `redpanda-3`, `redpanda-4`, and `redpanda-5`
-2. update seeds on `redpanda-3` and `redpanda-4` to match `redpanda-5`
-3. restart `redpanda-3` and `redpanda-4` one at a time (verifying cluster health after each broker comes back up)
-4. update the `rpk` config in `/etc/redpanda/redpanda.yaml` to reference the kafka and admin ports for `redpanda-3`
-5. decommission `redpanda-0` and then stop the container
-6. (OPTIONAL) You might also want to edit the console configuration to point to the updated admin address.
-
-Check if you passed the challenge:
-
-```
-bash check-challenge.sh
-```
+Repeat the above steps for each pod in the Redpanda cluster.
 
